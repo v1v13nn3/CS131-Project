@@ -1,0 +1,25 @@
+{
+    "0001": {
+        "name": "apple", 
+        "price": "0.50",
+        "category": "fruit"
+    },
+
+    "0002": {
+        "name": "banana", 
+        "price": "0.50",
+        "category": "fruit"
+    },
+
+    "0003": {
+        "name": "eggs", 
+        "price": "5.00",
+        "category": "produce"
+    },
+
+    "0004": {
+        "name": "milk", 
+        "price": "3.00",
+        "category": "produce"
+    }
+}
