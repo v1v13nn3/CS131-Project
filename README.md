@@ -1,2 +1,2 @@
 # CS131-Project
-Final Project for CS 131
+To launch app run `python3 main.py`
