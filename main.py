@@ -5,6 +5,49 @@ from capture_module import CaptureModule
 import cv2
 from fetch_module import FetchModule
 from process_module import ProcessModule
+import zmq
+import json
+
+import time
+# CHANGE THE PORTS BASED ON IP ADDRESSES OF THE NANO'S
+PORT_SEND = "5556"   # server -> client
+PORT_RECV = "5557"   # client -> server
+JSON_FILE = "items.json"
+
+# Helper to load just current_price values
+def load_prices(path):
+    with open(path, 'r') as f:
+        data = json.load(f)
+    return {item_id: {"current_price": info["current_price"]}
+            for item_id, info in data.items()}
+
+# Method to send and receive prices
+def sendPrices():
+    # Set up ZeroMQ context and sockets
+    context = zmq.Context()
+    socket_send = context.socket(zmq.PAIR)
+    socket_recv = context.socket(zmq.PAIR)
+
+    socket_send.bind(f"tcp://*:{PORT_SEND}")
+    socket_recv.bind(f"tcp://*:{PORT_RECV}")
+
+    # Send JSON of current prices to client
+    prices = load_prices(JSON_FILE)
+    msg = json.dumps(prices)
+    socket_send.send_string(msg)
+    print(f"[Server] sent -> {msg}")
+
+    # Receive one response from client
+    reply = socket_recv.recv_string()
+    print(f"[Server] recv <- {reply}")
+
+    # Clean up
+    socket_send.close()
+    socket_recv.close()
+    context.term()
+
+
+
 
 class DemandSync:
     def __init__(self, root):
