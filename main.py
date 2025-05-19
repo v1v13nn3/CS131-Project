@@ -89,8 +89,6 @@ class DemandSync:
         self.result_text.delete('1.0', tk.END)
         self.result_text.insert(tk.END, "Transaction processed.\n")
         
-
-
 if __name__ == "__main__":
     root = tk.Tk()
     app = DemandSync(root)

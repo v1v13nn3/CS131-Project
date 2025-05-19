@@ -2,15 +2,15 @@
     "0001": {
         "item_name": "apple",
         "base_price": 0.2,
-        "current_price": 0.3,
-        "last_purchased": "00:00:00",
-        "last_updated": "00:00:00",
-        "meter": 0
+        "current_price": 0.5846151300000003,
+        "last_purchased": "2025-05-19 14:26:10",
+        "last_updated": "2025-05-19 14:25:57",
+        "meter": 1
     },
     "0002": {
         "item_name": "banana",
         "base_price": 0.1,
-        "current_price": 0.50,
+        "current_price": 0.5,
         "last_purchased": "00:00:00",
         "last_updated": "00:00:00",
         "meter": 0

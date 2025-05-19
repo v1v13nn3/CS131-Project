@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 class ProcessModule:
     def __init__ (self):
@@ -33,11 +34,15 @@ class ProcessModule:
         for barcode, details in item_count.items():
             current_meter = self.items[barcode]["meter"]
             new_meter = current_meter + details["quantity"]
+
+            # Update the time the item was last purchased.
+            self.items[barcode]["last_purchased"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             while (new_meter >= 5):
                 new_meter -= 5
                 # Increase price by 10%
                 self.items[barcode]["current_price"] *= 1.1
+                self.items[barcode]["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             self.items[barcode]["meter"] = new_meter
 
