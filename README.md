@@ -35,6 +35,7 @@ Items.json Structure
 		"base_price": "0.30",
 		"current_price": "0.50",
 		"last_purchased": "00:00:00",
-		"last_updated": "00:00:00"
+		"last_updated": "00:00:00",
+        	"meter": "0"
 }
 ```
