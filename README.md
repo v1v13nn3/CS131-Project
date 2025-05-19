@@ -3,15 +3,14 @@ To launch app run `python3 main.py`
 
 Main Timing Pipeline
 ```
-if __name == "__main__":
-	while True:
-		# run main function -> main()
-		# simulate 1 hour by checking if 15 seconds have passed
-			# if yes then collect most recently updated items
-			# sync with other store
-		# simulate 1 day passing by checking id 360 seconds have passed
-			# if yes then decay the prices of items that have not been purchased in the last day by 10%
-			# make sure to not decrease bellow the base price
+while True:
+	# run main function -> main()
+	# simulate 1 hour by checking if 15 seconds have passed
+		# if yes then collect most recently updated items
+		# sync with other store
+	# simulate 1 day passing by checking id 360 seconds have passed
+		# if yes then decay the prices of items that have not been purchased in the last day by 10%
+		# make sure to not decrease bellow the base price
 ```
 
 Iterated Barcode Capture Piepeline
