@@ -22,7 +22,7 @@ def main():
 	# Scan barcode
 	# Process Transaction data
 		# Get quantity of each item
-		# For every item bought raise price by 1%
+		# For every 5 items bought raise price by 1%
 
 			# Update current item price, last-price-change timestamp, and last-purchase-date timestamp
 ```
