@@ -1,25 +1,34 @@
 {
     "0001": {
-        "name": "apple", 
-        "price": "0.50",
-        "category": "fruit"
+        "item_name": "apple",
+        "base_price": 0.2,
+        "current_price": 0.3,
+        "last_purchased": "00:00:00",
+        "last_updated": "00:00:00",
+        "meter": 0
     },
-
     "0002": {
-        "name": "banana", 
-        "price": "0.50",
-        "category": "fruit"
+        "item_name": "banana",
+        "base_price": 0.1,
+        "current_price": 0.50,
+        "last_purchased": "00:00:00",
+        "last_updated": "00:00:00",
+        "meter": 0
     },
-
     "0003": {
-        "name": "eggs", 
-        "price": "5.00",
-        "category": "produce"
+        "item_name": "eggs",
+        "base_price": 0.5,
+        "current_price": 1.0,
+        "last_purchased": "00:00:00",
+        "last_updated": "00:00:00",
+        "meter": 0
     },
-
     "0004": {
-        "name": "milk", 
-        "price": "3.00",
-        "category": "produce"
+        "item_name": "milk",
+        "base_price": 3.0,
+        "current_price": 4.0,
+        "last_purchased": "00:00:00",
+        "last_updated": "00:00:00",
+        "meter": 0
     }
 }

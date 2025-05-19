@@ -3,6 +3,8 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 from capture_module import CaptureModule
 import cv2
+from fetch_module import FetchModule
+from process_module import ProcessModule
 
 class DemandSync:
     def __init__(self, root):
@@ -22,20 +24,26 @@ class DemandSync:
         '''
         This initializing function creates and runs the application window
         '''
+        self.capMod = CaptureModule()
+        self.processMod = ProcessModule()
+
         self.root = root
         self.root.title("DemandSync")
 
         self.video_label = tk.Label(root)
         self.video_label.pack()
         
-        self.capMod = CaptureModule()
         self.scan_button = tk.Button(root, text = "Scan Barcode", command = self.handle_scan)
         self.scan_button.pack()
+
+        self.finish_button = tk.Button(root, text="Finish Transaction", command=self.finish_transaction)
+        self.finish_button.pack()
 
         self.result_text = tk.Text(root, height=10, width=50)
         self.result_text.pack()
 
-        self.transaction = {}
+        self.transaction = []
+
 
     def handle_scan(self):
         try:
@@ -48,15 +56,39 @@ class DemandSync:
             self.video_label.imgtk = img_tk
             self.video_label.configure(image=img_tk)
 
-            # Display results
-            # self.result_text.delete('1.0', tk.END)
+            # Build the result string by iterating in reverse
+            output_text = ""
             if not results:
-                self.result_text.insert(tk.END, "No barcode found.\n")
+                output_text = "No barcode found.\n"
             else:
-                for barcode_data, barcode_type in results:
-                    self.result_text.insert(tk.END, f"{barcode_type}: {barcode_data}\n")
+                for barcode_data, barcode_type in reversed(results):
+                    self.fetchMod = FetchModule()
+                    name, price = self.fetchMod.fetch(barcode_data)
+                    if name and price:
+                        self.transaction.append(barcode_data)
+                        output_text = f"Scanned {barcode_data}: {name} - ${round(price, 2)}\n" + output_text
+                    else:
+                        output_text = f"Item with barcode {barcode_data} not found.\n" + output_text
+                    del self.fetchMod
+
+            # Insert the complete output at the beginning
+            self.result_text.insert('1.0', output_text)
+
         except Exception as e:
             messagebox.showerror("Error", str(e))
+
+    def finish_transaction(self):
+        if not self.transaction:
+            messagebox.showinfo("Info", "No items bought.")
+            return
+        
+        self.processMod.process_pipeline(self.transaction)
+        
+        # After processing, clear the transaction and result text
+        self.transaction.clear()
+        self.result_text.delete('1.0', tk.END)
+        self.result_text.insert(tk.END, "Transaction processed.\n")
+        
 
 
 if __name__ == "__main__":
