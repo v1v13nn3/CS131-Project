@@ -38,6 +38,18 @@ class ProcessModule:
                 new_meter -= 5
                 # Increase price by 10%
                 self.items[barcode]["current_price"] *= 1.1
+
+            # 🔽 Add history tracking here
+            if "history" not in self.items[barcode]:
+                self.items[barcode]["history"] = []
+
+            # Round to 2 decimals for display purposes
+            current_price_rounded = round(self.items[barcode]["current_price"], 2)
+            self.items[barcode]["history"].append(current_price_rounded)
+
+            # Keep history limited to the last 10 values
+            if len(self.items[barcode]["history"]) > 10:
+                self.items[barcode]["history"] = self.items[barcode]["history"][-10:]
             
             self.items[barcode]["meter"] = new_meter
 

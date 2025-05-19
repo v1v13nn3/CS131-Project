@@ -5,6 +5,7 @@ from capture_module import CaptureModule
 import cv2
 from fetch_module import FetchModule
 from process_module import ProcessModule
+from dashboard_module import DashboardModule
 
 class DemandSync:
     def __init__(self, root):
@@ -29,20 +30,34 @@ class DemandSync:
 
         self.root = root
         self.root.title("DemandSync")
+        self.root.geometry("1000x600")  # Optional: set a window size
 
-        self.video_label = tk.Label(root)
+        # Create two main frames for left (scanner) and right (dashboard)
+        self.left_frame = tk.Frame(root)
+        self.left_frame.pack(side="left", fill="both", expand=True)
+
+        self.right_frame = tk.Frame(root)
+        self.right_frame.pack(side="right", fill="both", expand=True)
+
+        # --- LEFT: Scanning UI ---
+        self.video_label = tk.Label(self.left_frame)
         self.video_label.pack()
-        
-        self.scan_button = tk.Button(root, text = "Scan Barcode", command = self.handle_scan)
+
+        self.scan_button = tk.Button(self.left_frame, text="Scan Barcode", command=self.handle_scan)
         self.scan_button.pack()
 
-        self.finish_button = tk.Button(root, text="Finish Transaction", command=self.finish_transaction)
+        self.finish_button = tk.Button(self.left_frame, text="Finish Transaction", command=self.finish_transaction)
         self.finish_button.pack()
 
-        self.result_text = tk.Text(root, height=10, width=50)
+        self.result_text = tk.Text(self.left_frame, height=10, width=50)
         self.result_text.pack()
 
+        # --- RIGHT: Dashboard UI ---
+        self.dashboard = DashboardModule(self.right_frame)
+        self.dashboard.pack(fill="both", expand=True)
+
         self.transaction = []
+        #self.update_camera()
 
 
     def handle_scan(self):
@@ -83,11 +98,25 @@ class DemandSync:
             return
         
         self.processMod.process_pipeline(self.transaction)
+
+        self.dashboard.update_dashboard(self.transaction)
         
         # After processing, clear the transaction and result text
         self.transaction.clear()
         self.result_text.delete('1.0', tk.END)
         self.result_text.insert(tk.END, "Transaction processed.\n")
+
+    def update_camera(self):
+        ret, frame = self.capMod.camera.read()
+        if ret:
+            img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img_pil = Image.fromarray(img_rgb)
+            img_tk = ImageTk.PhotoImage(img_pil)
+            self.video_label.imgtk = img_tk
+            self.video_label.configure(image=img_tk)
+
+        # Call this function again after 30ms
+        self.root.after(30, self.update_camera)
         
 
 
