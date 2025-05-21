@@ -1,95 +1,171 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
-from capture_module import CaptureModule
 import cv2
-from fetch_module import FetchModule
-from process_module import ProcessModule
 
-class DemandSync:
-    def __init__(self, root):
-        '''
-        Main application loop that keeps time of all the app's processes
+from capture_module import CaptureModule
+from item_data_manager import ItemDataManager
+from process_module import ItemProcessor
+from network_manager import NetworkManager, get_local_ip
 
-        while True:
-            run main function -> main()
-            simulate 1 hour by checking if 15 seconds have passed
-                if yes then collect most recently updated items
-                sync with other store
-            simulate 1 day passing by checking id 360 seconds have passed
-                if yes then decay the prices of items that have not been purchased in the last day
-                make sure to not decrease bellow the base price
-        '''
+import time
+from datetime import datetime
 
-        '''
-        This initializing function creates and runs the application window
-        '''
-        self.capMod = CaptureModule()
-        self.processMod = ProcessModule()
+# --- Global Configuration ---
+# Set this IP to the IP address of the OTHER computer on your local network.
+# You need to find this manually (e.g., using `ipconfig` on Windows, `ifconfig` on macOS/Linux).
+OTHER_STORE_IP = """ TODO: Fill in IP adress """ # <--- IMPORTANT: REPLACE THIS WITH THE ACTUAL IP OF THE OTHER MACHINE
 
+JSON_FILE = "items.json" # Path to your item data file
+
+# --- Application Class ---
+class DemandSyncApp:
+    def __init__(self, root, is_this_store_server = False):
+        """
+        Initializes the DemandSync application.
+        :param root: The Tkinter root window.
+        :param is_this_store_server: Set to True if this instance is Store 1 (binds to 5556, connects to 5557),
+                                     False if it is Store 2 (binds to 5557, connects to 5556).
+        """
         self.root = root
-        self.root.title("DemandSync")
+        self.root.title(f"DemandSync (Store {'1' if is_this_store_server else '2'}) - My IP: {get_local_ip()}")
 
+        # --- Module Instances ---
+        self.capture_module = CaptureModule()
+        self.item_data_manager = ItemDataManager(filepath = JSON_FILE)
+        self.item_processor = ItemProcessor(item_data_manager = self.item_data_manager)
+        self.network_manager = NetworkManager(
+            item_data_manager = self.item_data_manager,
+            is_this_store_server = is_this_store_server,
+            other_store_ip = OTHER_STORE_IP
+        )
+
+        # --- UI Elements ---
         self.video_label = tk.Label(root)
-        self.video_label.pack()
-        
+        self.video_label.pack(pady = 10)
+
         self.scan_button = tk.Button(root, text = "Scan Barcode", command = self.handle_scan)
-        self.scan_button.pack()
+        self.scan_button.pack(pady = 5)
 
-        self.finish_button = tk.Button(root, text="Finish Transaction", command=self.finish_transaction)
-        self.finish_button.pack()
+        self.finish_button = tk.Button(root, text = "Finish Transaction", command = self.finish_transaction)
+        self.finish_button.pack(pady = 5)
 
-        self.result_text = tk.Text(root, height=10, width=50)
-        self.result_text.pack()
+        self.result_text = tk.Text(root, height = 10, width = 50, state = 'normal')
+        self.result_text.pack(pady = 10)
 
-        self.transaction = []
+        # --- Application State ---
+        self.transaction_barcodes = []
+        self.last_hourly_check_time = time.time()
+        self.last_daily_check_time = time.time()
 
+        # Simulated intervals (in seconds)
+        self.hourly_interval_simulated = 5
+        self.daily_interval_simulated = 12
+
+        # Start periodic tasks
+        self.start_periodic_tasks()
+
+        # Bind window close event to shutdown network manager
+        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+
+    def start_periodic_tasks(self):
+        """ Schedules the hourly and daily tasks to run periodically. """
+        self.check_hourly_tasks()
+        self.check_daily_tasks()
+
+    def check_hourly_tasks(self):
+        """ Checks if the simulated hourly interval has passed and runs the task. """
+        if time.time() - self.last_hourly_check_time >= self.hourly_interval_simulated:
+            self.last_hourly_check_time = time.time()
+            self.run_hourly_tasks()
+        self.root.after(1000, self.check_hourly_tasks)
+
+    def check_daily_tasks(self):
+        """ Checks if the simulated daily interval has passed and runs the task. """
+        if time.time() - self.last_daily_check_time >= self.daily_interval_simulated:
+            self.last_daily_check_time = time.time()
+            self.run_daily_tasks()
+        self.root.after(1000, self.check_daily_tasks)
+
+    def run_hourly_tasks(self):
+        """ Executes tasks that simulate hourly processes. """
+        self.log_message("Simulating hourly process: Sending price updates to other store...")
+        # Both client and server roles will send their prices
+        self.network_manager.send_prices_to_other_store()
+
+    def run_daily_tasks(self):
+        """ Executes tasks that simulate daily processes. """
+        self.log_message("Simulating daily process: Decaying prices of unsold items...")
+        self.item_processor.decay_prices()
 
     def handle_scan(self):
+        """ Handles the 'Scan Barcode' button click event. """
         try:
-            frame, results = self.capMod.capture_pipeline()
+            frame, results = self.capture_module.capture_pipeline()
 
-            # Convert frame to ImageTk and display
             img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img_pil = Image.fromarray(img_rgb)
             img_tk = ImageTk.PhotoImage(img_pil)
             self.video_label.imgtk = img_tk
-            self.video_label.configure(image=img_tk)
+            self.video_label.configure(image = img_tk)
 
-            # Build the result string by iterating in reverse
-            output_text = ""
+            output_lines = []
             if not results:
-                output_text = "No barcode found.\n"
+                output_lines.append("No barcode found.")
             else:
-                for barcode_data, barcode_type in reversed(results):
-                    self.fetchMod = FetchModule()
-                    name, price = self.fetchMod.fetch(barcode_data)
-                    if name and price:
-                        self.transaction.append(barcode_data)
-                        output_text = f"Scanned {barcode_data}: {name} - ${round(price, 2)}\n" + output_text
+                for barcode_data, barcode_type in results:
+                    name, price = self.item_data_manager.get_item_details(barcode_data)
+                    if name and price is not None:
+                        self.transaction_barcodes.append(barcode_data)
+                        output_lines.append(f"Scanned {barcode_data}: {name} - ${round(price, 2)}")
                     else:
-                        output_text = f"Item with barcode {barcode_data} not found.\n" + output_text
-                    del self.fetchMod
+                        output_lines.append(f"Item with barcode {barcode_data} not found.")
 
-            # Insert the complete output at the beginning
-            self.result_text.insert('1.0', output_text)
+            self.log_message("\n".join(reversed(output_lines)))
 
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            messagebox.showerror("Error", f"An error occurred during scan: {e}")
+            self.log_message(f"Error during scan: {e}")
 
     def finish_transaction(self):
-        if not self.transaction:
-            messagebox.showinfo("Info", "No items bought.")
+        """ Handles the 'Finish Transaction' button click event. """
+        if not self.transaction_barcodes:
+            messagebox.showinfo("Info", "No items bought in this transaction.")
+            self.log_message("No items in current transaction.")
             return
-        
-        self.processMod.process_pipeline(self.transaction)
-        
-        # After processing, clear the transaction and result text
-        self.transaction.clear()
-        self.result_text.delete('1.0', tk.END)
-        self.result_text.insert(tk.END, "Transaction processed.\n")
-        
+
+        self.log_message("Processing transaction...")
+        self.item_processor.process_pipeline(self.transaction_barcodes)
+
+        self.transaction_barcodes.clear()
+        self.log_message("Transaction processed. Ready for next transaction.")
+        messagebox.showinfo("Transaction Complete", "Transaction processed successfully!")
+
+    def log_message(self, message):
+        """ Logs a message to the Tkinter text widget and console. """
+        timestamp = datetime.now().strftime("[%H:%M:%S]")
+        full_message = f"{timestamp} {message}\n"
+        self.result_text.insert('1.0', full_message)
+        num_lines = int(self.result_text.index('end-1c').split('.')[0])
+        if num_lines > 100:
+            self.result_text.delete('101.0', 'end')
+        self.result_text.see('1.0')
+        print(full_message.strip())
+
+    def _on_closing(self):
+        """ Handles the window closing event to ensure proper shutdown. """
+        print("Application closing. Shutting down network manager...")
+        self.network_manager.shutdown()
+        self.capture_module.__del__()
+        self.root.destroy()
+
+# --- Main Application Entry Point ---
 if __name__ == "__main__":
+    # Determine if this instance is Store 1 or Store 2.
+    # Set IS_THIS_STORE_SERVER = True for one computer (e.g., Store 1).
+    # Set IS_THIS_STORE_SERVER = False for the other computer (e.g., Store 2).
+    IS_THIS_STORE_SERVER = """ TODO: Fill in True or False """ # <--- IMPORTANT: SET THIS TO TRUE FOR ONE COMPUTER, FALSE FOR THE OTHER
+
     root = tk.Tk()
-    app = DemandSync(root)
+    app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
     root.mainloop()
