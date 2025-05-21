@@ -92,17 +92,25 @@ class NetworkManager:
                 print(f"[NetworkManager] Unexpected error in receive loop: {e}")
             time.sleep(0.01) # Small sleep to prevent busy-waiting
 
-    def send_prices_to_other_store(self):
-        """ Sends the current prices to the other store using the PUSH socket. """
+    def send_prices_to_other_store(self, last_sync_time): # Added last_sync_time parameter
+        """
+        Sends the current prices to the other store using the PUSH socket.
+        Only sends items updated since last_sync_time.
+        :param last_sync_time: A float timestamp (e.g., from time.time()) representing the last sync time.
+        """
         if not self.running:
             print("[NetworkManager] Not running, cannot send prices.")
             return
 
         try:
-            prices = self.item_data_manager.get_all_prices_for_sync()
-            msg = json.dumps(prices)
-            self.push_socket.send_string(msg)
-            print(f"[NetworkManager] Sent price update -> {msg}")
+            # Get only recently updated items from ItemDataManager
+            prices = self.item_data_manager.get_recently_updated_items_for_sync(last_sync_time)
+            if prices:
+                msg = json.dumps(prices)
+                self.push_socket.send_string(msg)
+                print(f"[NetworkManager] Sent price update for {len(prices)} items -> {msg}")
+            else:
+                print("[NetworkManager] No recent item updates to send.")
         except zmq.error.ZMQError as e:
             print(f"[NetworkManager] Error sending prices: {e}")
         except Exception as e:

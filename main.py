@@ -91,7 +91,7 @@ class DemandSyncApp:
         """ Executes tasks that simulate hourly processes. """
         self.log_message("Simulating hourly process: Sending price updates to other store...")
         # Both client and server roles will send their prices
-        self.network_manager.send_prices_to_other_store()
+        self.network_manager.send_prices_to_other_store(self.last_hourly_check_time)
 
     def run_daily_tasks(self):
         """ Executes tasks that simulate daily processes. """

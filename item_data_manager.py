@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 class ItemDataManager:
     def __init__(self, filepath="items.json"):
@@ -43,6 +44,28 @@ class ItemDataManager:
         for item_id, info in self.items.items():
             prices[item_id] = {"current_price": info.get("current_price")}
         return prices
+    
+    def get_recently_updated_items_for_sync(self, since_timestamp):
+        """
+        Returns a dictionary of items that have been updated since the given timestamp,
+        formatted for syncing (item_id: {"current_price": price}).
+        :param since_timestamp: A float timestamp (e.g., from time.time()) representing the last sync time.
+        """
+        recently_updated_prices = {}
+        for item_id, info in self.items.items():
+            last_updated_str = info.get("last_updated")
+            if last_updated_str:
+                try:
+                    # Convert string timestamp to datetime object
+                    last_updated_dt = datetime.strptime(last_updated_str, "%Y-%m-%d %H:%M:%S")
+                    # Convert datetime object to Unix timestamp for comparison
+                    last_updated_unix = last_updated_dt.timestamp()
+
+                    if last_updated_unix >= since_timestamp:
+                        recently_updated_prices[item_id] = {"current_price": info.get("current_price")}
+                except ValueError:
+                    print(f"[ItemDataManager] Warning: Could not parse 'last_updated' date for barcode {item_id}.")
+        return recently_updated_prices
 
     def update_prices_from_sync(self, synced_prices):
         """ Updates local item prices based on received synced prices. """
