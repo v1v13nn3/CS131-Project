@@ -1,6 +1,9 @@
 import json
 from datetime import datetime
 
+BLS_WEIGHT = 0.30
+DEMAND_WEIGHT = 0.70
+
 class ItemProcessor:
     def __init__(self, item_data_manager):
         """
@@ -34,8 +37,9 @@ class ItemProcessor:
 
                 while (new_meter >= 5):
                     new_meter -= 5
-                    # Increase price by 1%
-                    items_data[barcode]["current_price"] *= 1.01
+                    # Increase demand_price by 1%
+                    items_data[barcode]["demand_price"] *= 1.01
+                    items_data[barcode]["current_price"] = (items_data[barcode]["base_price"] * BLS_WEIGHT) + (items_data[barcode]["demand_price"] * DEMAND_WEIGHT)
                     items_data[barcode]["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
                 items_data[barcode]["meter"] = new_meter
@@ -56,15 +60,18 @@ class ItemProcessor:
                         last_purchased = datetime.strptime(details["last_purchased"], "%Y-%m-%d %H:%M:%S")
                         # Check if it's been at least 1 day since last purchase
                         if (datetime.now() - last_purchased).days >= 1:
-                            if "current_price" in details and "base_price" in details:
-                                # Ensure current_price is a float for multiplication
+                            if "demand_price" in details and "base_price" in details and "current_price" in details:
                                 current_price = float(details["current_price"])
+                                demand_price = float(details["demand_price"])
                                 base_price = float(details["base_price"])
 
-                                current_price *= 0.9 # Decrease price by 10%
-                                if current_price < base_price:
-                                    current_price = base_price # Don't decrease below base price
+                                demand_price *= 0.9 # Decrease  demand price by 10%
+                                if demand_price < base_price:
+                                    demand_price = base_price # Don't decrease below base price
+                                
+                                current_price = (base_price * BLS_WEIGHT) + (demand_price * DEMAND_WEIGHT)
 
+                                details["demand_price"] = demand_price
                                 details["current_price"] = current_price
                                 details["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                 print(f"[ItemProcessor] Decayed price for {barcode} to {current_price:.2f}")

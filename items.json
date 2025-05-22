@@ -1,34 +1,42 @@
 {
     "0001": {
-        "item_name": "apple",
-        "base_price": 0.2,
-        "current_price": 0.5706233412220003,
+        "item_name": "apple (1 lb.)",
+        "base_price": 1.315,
+        "demand_price": 1.315,
+        "current_price": 1.315,
         "last_purchased": "2025-05-20 21:17:12",
-        "last_updated": "2025-05-20 21:17:12",
-        "meter": 4
+        "last_updated": "2025-05-22 01:11:33",
+        "meter": 0,
+        "series_id": "APU0000711111"
     },
     "0002": {
-        "item_name": "banana",
-        "base_price": 0.1,
-        "current_price": 0.1,
+        "item_name": "bananas (1 lb.)",
+        "base_price": 0.615,
+        "demand_price": 0.615,
+        "current_price": 0.615,
         "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "last_updated": "2025-05-22 01:11:33",
+        "meter": 0,
+        "series_id": "APU0000711211"
     },
     "0003": {
-        "item_name": "eggs",
-        "base_price": 0.5,
-        "current_price": 0.5,
+        "item_name": "eggs (1 dozen)",
+        "base_price": 4.146,
+        "demand_price": 4.146,
+        "current_price": 4.146,
         "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "last_updated": "2025-05-22 01:11:33",
+        "meter": 0,
+        "series_id": "APU0000708111"
     },
     "0004": {
-        "item_name": "milk",
-        "base_price": 3.0,
-        "current_price": 3.0,
+        "item_name": "milk (1 gallon)",
+        "base_price": 4.101,
+        "demand_price": 4.101,
+        "current_price": 4.101,
         "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "last_updated": "2025-05-22 01:11:33",
+        "meter": 0,
+        "series_id": "APU0000709112"
     }
 }

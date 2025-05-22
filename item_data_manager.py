@@ -1,11 +1,19 @@
 import json
 from datetime import datetime
 
+from api_BLS import get_bls_data
+
+BLS_WEIGHT = 0.30
+DEMAND_WEIGHT = 0.70
+
 class ItemDataManager:
     def __init__(self, filepath="items.json"):
+        self.get_bls_data = get_bls_data
+
         self.filepath = filepath
         self.items = {}
         self._load_items()
+        self.load_bls_data()
 
     def _load_items(self):
         """ Loads item data from the JSON file. """
@@ -19,6 +27,22 @@ class ItemDataManager:
         except json.JSONDecodeError:
             print(f"[ItemDataManager] Error decoding JSON from file {self.filepath}. Starting with empty items.")
             self.items = {}
+
+    def load_bls_data(self):
+        """ Loads the average pricing data from the Beureau of Labor Statistics (BLS) API. """
+        # Gather sersies IDs from the items
+        print(f"[ItemDataManager] Loading BLS data...")
+        series_ids = []
+        for barcode in self.items:
+            series_ids.append(self.items[barcode].get("series_id"))
+
+        avg_prices = self.get_bls_data(series_ids)
+
+        for index, barcode in enumerate(self.items):
+            self.items[barcode]["base_price"] = avg_prices[index]
+            self.items[barcode]["current_price"] = (self.items[barcode]["base_price"] * BLS_WEIGHT) + (self.items[barcode]["demand_price"] * DEMAND_WEIGHT)
+
+        self.save_items_to_json()
 
     def save_items_to_json(self):
         """ Saves the current item data to the JSON file. """
