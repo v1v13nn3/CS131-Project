@@ -55,7 +55,7 @@ def submit_data():
     existing_store = next((store for store in data if store['storename'].lower() == storename.lower()), None)
 
     if insertStore == 0:  #Search mode
-        # Just return store JSON if found, else 404
+        # Just return store JSON if found, else 404 
         if existing_store:
             return jsonify(existing_store), 200
         else:
