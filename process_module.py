@@ -24,32 +24,55 @@ class ItemProcessor:
 
     def adjust_price(self, item_count):
         """ Adjusts the price of the items based on the quantity bought and updates last_purchased/updated. """
-        items_data = self.item_data_manager.items # Get direct reference to the items dict
+        items_data = self.item_data_manager.items
 
         for barcode, details in item_count.items():
             if barcode in items_data:
-                current_meter = items_data[barcode].get("meter", 0)
-                quantity = details.get("quantity", 0)
-                new_meter = current_meter + quantity
+                item = items_data[barcode]
 
-                # Update the time the item was last purchased.
-                items_data[barcode]["last_purchased"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                current_meter = item.get("meter", 0)
+                new_meter = current_meter + details["quantity"]
 
-                while (new_meter >= 5):
+                if "history" not in item or not item["history"]:
+                    base_price = item.get("base_price", item.get("current_price", 0))
+                    item["history"] = [round(base_price, 2)]
+
+                while new_meter >= 5:
                     new_meter -= 5
                     # Increase demand_price by 1%
                     items_data[barcode]["demand_price"] *= 1.01
                     items_data[barcode]["current_price"] = (items_data[barcode]["base_price"] * BLS_WEIGHT) + (items_data[barcode]["demand_price"] * DEMAND_WEIGHT)
                     items_data[barcode]["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                items_data[barcode]["meter"] = new_meter
+                # Update last purchased timestamp
+                item["last_purchased"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
             else:
                 print(f"[ItemProcessor] Warning: Barcode '{barcode}' not found in item data for price adjustment.")
 
         self.item_data_manager.save_items_to_json()
 
+    def process_pipeline(self, items_list):
+        """ Processes a list of scanned items (barcodes) through organization and price adjustment. """
+        item_count = self.organize(items_list)
+        self.adjust_price(item_count)
+
+    def reset_history(self):
+        """
+        Clears the price history, prices, and meters for all items (locally)
+        """
+        items_data = self.item_data_manager.items
+
+        for item in items_data.values():
+            item["history"] = []
+            item["current_price"] = item.get("base_price", item.get("current_price", 0))
+            item["meter"] = 0
+
+        self.item_data_manager.save_items_to_json()
+        print("Successfully reset item histories.")
+
     def decay_prices(self):
-        """ Decays the prices of items that have not been purchased in the last day. """
+        """ Decays the prices of items that have not been purchased in the last day and updates price history. """
         items_data = self.item_data_manager.items
 
         print("[ItemProcessor] Starting price decay process...")
@@ -74,7 +97,18 @@ class ItemProcessor:
                                 details["demand_price"] = demand_price
                                 details["current_price"] = current_price
                                 details["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                print(f"[ItemProcessor] Decayed price for {barcode} to {current_price:.2f}")
+
+                                # Append the new decayed price to history only if it changed
+                                if "history" not in details or not isinstance(details["history"], list):
+                                    details["history"] = []
+
+                                if not details["history"] or details["history"][-1] != details["current_price"]:
+                                    details["history"].append(details["current_price"])
+                                else:
+                                    print(f"[ItemProcessor] Price for {barcode} unchanged since last history entry; not appending.")
+
+
+                                print(f"[ItemProcessor] Decayed price for {barcode} from {old_price:.2f} to {details['current_price']:.2f}")
                     except ValueError:
                         print(f"[ItemProcessor] Warning: Could not parse 'last_purchased' date for barcode {barcode}.")
                 else:
@@ -86,7 +120,3 @@ class ItemProcessor:
         except Exception as e:
             print(f"[ItemProcessor] An error occurred during price decay: {e}")
 
-    def process_pipeline(self, items_list):
-        """ Processes a list of scanned items (barcodes) through organization and price adjustment. """
-        item_count = self.organize(items_list)
-        self.adjust_price(item_count)
