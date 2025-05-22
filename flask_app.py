@@ -5,11 +5,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# JSON file path in user's home directory
 user_home = os.path.expanduser('~')
 flashcards_file = os.path.join(user_home, 'AllFlashcards.json')
 
-# Ensure JSON file exists and contains a list
 def initialize_json_file():
     if not os.path.exists(flashcards_file):
         with open(flashcards_file, 'w') as f:
@@ -21,14 +19,13 @@ def initialize_json_file():
             if not isinstance(data, list):
                 raise ValueError("JSON is not a list")
         except Exception:
-            # If file is corrupted or invalid, reset it
             with open(flashcards_file, 'w') as f:
                 json.dump([], f)
 @app.route('/submit', methods=['GET'])
 def submit_data():
     initialize_json_file()
 
-    searchStore = request.args.get('searchStore')  # was InsertItems
+    searchStore = request.args.get('searchStore')
     insertStore = request.args.get('insertStore')
     storename = request.args.get('storename', '').strip()
     storeIP = request.args.get('storeIP', '').strip()
@@ -37,10 +34,9 @@ def submit_data():
     password = request.args.get('password', '')
 
     # Password check
-    if password != 'abcd':
+    if password != 'password':
         return jsonify({'error': 'Unauthorized'}), 403
 
-    # Validate insertStore and searchStore
     if searchStore not in ['0', '1'] or insertStore not in ['0', '1']:
         return jsonify({'error': 'searchStore and insertStore must be 0 or 1'}), 400
 
@@ -58,14 +54,14 @@ def submit_data():
 
     existing_store = next((store for store in data if store['storename'].lower() == storename.lower()), None)
 
-    if insertStore == 0:
+    if insertStore == 0:  #Search mode
         # Just return store JSON if found, else 404
         if existing_store:
             return jsonify(existing_store), 200
         else:
             return jsonify({'error': f'Store "{storename}" not found'}), 404
 
-    # insertStore == 1: insert or update store
+    # insertStore == 1: insert or update store mode
     if not itemname:
         return jsonify({'error': 'itemname is required when inserting/updating'}), 400
 
