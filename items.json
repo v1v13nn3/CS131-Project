@@ -2,18 +2,18 @@
     "0001": {
         "item_name": "apple",
         "base_price": 0.2,
-        "current_price": 0.2,
-        "last_purchased": "00:00:00",
-        "last_updated": "00:00:00",
-        "meter": 0,
+        "current_price": 0.5706233412220003,
+        "last_purchased": "2025-05-20 21:17:12",
+        "last_updated": "2025-05-20 21:17:12",
+        "meter": 4,
         "history": []
     },
     "0002": {
         "item_name": "banana",
         "base_price": 0.1,
         "current_price": 0.1,
-        "last_purchased": "00:00:00",
-        "last_updated": "00:00:00",
+        "last_purchased": "2025-01-01 12:00:00",
+        "last_updated": "2025-05-20 21:17:30",
         "meter": 0,
         "history": []
     },
@@ -21,8 +21,8 @@
         "item_name": "eggs",
         "base_price": 0.5,
         "current_price": 0.5,
-        "last_purchased": "00:00:00",
-        "last_updated": "00:00:00",
+        "last_purchased": "2025-01-01 12:00:00",
+        "last_updated": "2025-05-20 21:17:30",
         "meter": 0,
         "history": []
     },
@@ -30,8 +30,8 @@
         "item_name": "milk",
         "base_price": 3.0,
         "current_price": 3.0,
-        "last_purchased": "00:00:00",
-        "last_updated": "00:00:00",
+        "last_purchased": "2025-01-01 12:00:00",
+        "last_updated": "2025-05-20 21:17:30",
         "meter": 0,
         "history": []
     }
