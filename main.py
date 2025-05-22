@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import cv2
-
+from dashboard_module import DashboardModule
 from capture_module import CaptureModule
 from item_data_manager import ItemDataManager
 from process_module import ItemProcessor
@@ -29,6 +29,7 @@ class DemandSyncApp:
         """
         self.root = root
         self.root.title(f"DemandSync (Store {'1' if is_this_store_server else '2'}) - My IP: {get_local_ip()}")
+        self.root.geometry("1000x600")  # Optional: set a window size
 
         # --- Module Instances ---
         self.capture_module = CaptureModule()
@@ -40,18 +41,33 @@ class DemandSyncApp:
             other_store_ip = OTHER_STORE_IP
         )
 
-        # --- UI Elements ---
-        self.video_label = tk.Label(root)
-        self.video_label.pack(pady = 10)
+        # Create two main frames for left (scanner) and right (dashboard)
+        self.left_frame = tk.Frame(root)
+        self.left_frame.pack(side="left", fill="both", expand=True)
 
-        self.scan_button = tk.Button(root, text = "Scan Barcode", command = self.handle_scan)
-        self.scan_button.pack(pady = 5)
+        self.right_frame = tk.Frame(root)
+        self.right_frame.pack(side="right", fill="both", expand=True)
 
-        self.finish_button = tk.Button(root, text = "Finish Transaction", command = self.finish_transaction)
-        self.finish_button.pack(pady = 5)
+        # Left Side of UI
+        self.video_label = tk.Label(self.left_frame)
+        self.video_label.pack()
 
-        self.result_text = tk.Text(root, height = 10, width = 50, state = 'normal')
-        self.result_text.pack(pady = 10)
+        self.scan_button = tk.Button(self.left_frame, text="Scan Barcode", command=self.handle_scan)
+        self.scan_button.pack()
+
+        self.finish_button = tk.Button(self.left_frame, text="Finish Transaction", command=self.finish_transaction)
+        self.finish_button.pack()
+
+        self.result_text = tk.Text(self.left_frame, height=10, width=50)
+        self.result_text.pack()
+
+        # Right Side of UI
+        self.dashboard = DashboardModule(self.right_frame, self.item_processor)
+        self.dashboard.pack(fill="both", expand=True)
+        self.start_dashboard_refresh()
+
+
+        self.update_camera()
 
         # --- Application State ---
         self.transaction_barcodes = []
@@ -97,6 +113,7 @@ class DemandSyncApp:
         """ Executes tasks that simulate daily processes. """
         self.log_message("Simulating daily process: Decaying prices of unsold items...")
         self.item_processor.decay_prices()
+        self.dashboard.update_dashboard([])
 
     def handle_scan(self):
         """ Handles the 'Scan Barcode' button click event. """
@@ -133,13 +150,25 @@ class DemandSyncApp:
             messagebox.showinfo("Info", "No items bought in this transaction.")
             self.log_message("No items in current transaction.")
             return
-
-        self.log_message("Processing transaction...")
+        
         self.item_processor.process_pipeline(self.transaction_barcodes)
-
+        self.dashboard.update_dashboard(self.transaction_barcodes)
         self.transaction_barcodes.clear()
-        self.log_message("Transaction processed. Ready for next transaction.")
-        messagebox.showinfo("Transaction Complete", "Transaction processed successfully!")
+        self.result_text.delete('1.0', tk.END)
+        self.result_text.insert(tk.END, "Transaction processed.\n")
+
+    #update the image with live feed of the camera
+    def update_camera(self):
+        ret, frame = self.capture_module.camera.read()
+        if ret:
+            img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img_pil = Image.fromarray(img_rgb)
+            img_tk = ImageTk.PhotoImage(img_pil)
+            self.video_label.imgtk = img_tk
+            self.video_label.configure(image=img_tk)
+
+        # Call this function again after 30ms
+        self.root.after(30, self.update_camera)
 
     def log_message(self, message):
         """ Logs a message to the Tkinter text widget and console. """
@@ -156,8 +185,14 @@ class DemandSyncApp:
         """ Handles the window closing event to ensure proper shutdown. """
         print("Application closing. Shutting down network manager...")
         self.network_manager.shutdown()
-        self.capture_module.__del__()
+        self.capture_module.camera.release()
         self.root.destroy()
+
+    def start_dashboard_refresh(self):
+        """ Periodically refresh dashboard to show price changes (e.g. decay). """
+        self.dashboard.update_dashboard([])  # Pass empty list, no new transactions
+        self.root.after(10000, self.start_dashboard_refresh)  # Refresh every 10 seconds
+
 
 # --- Main Application Entry Point ---
 if __name__ == "__main__":
@@ -169,3 +204,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
     root.mainloop()
+    

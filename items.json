@@ -5,7 +5,8 @@
         "current_price": 0.5706233412220003,
         "last_purchased": "2025-05-20 21:17:12",
         "last_updated": "2025-05-20 21:17:12",
-        "meter": 4
+        "meter": 4,
+        "history": []
     },
     "0002": {
         "item_name": "banana",
@@ -13,7 +14,8 @@
         "current_price": 0.1,
         "last_purchased": "2025-01-01 12:00:00",
         "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "meter": 0,
+        "history": []
     },
     "0003": {
         "item_name": "eggs",
@@ -21,7 +23,8 @@
         "current_price": 0.5,
         "last_purchased": "2025-01-01 12:00:00",
         "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "meter": 0,
+        "history": []
     },
     "0004": {
         "item_name": "milk",
@@ -29,6 +32,7 @@
         "current_price": 3.0,
         "last_purchased": "2025-01-01 12:00:00",
         "last_updated": "2025-05-20 21:17:30",
-        "meter": 0
+        "meter": 0,
+        "history": []
     }
 }
