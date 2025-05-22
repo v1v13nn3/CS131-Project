@@ -44,7 +44,8 @@ class ItemProcessor:
                     items_data[barcode]["current_price"] = (items_data[barcode]["base_price"] * BLS_WEIGHT) + (items_data[barcode]["demand_price"] * DEMAND_WEIGHT)
                     items_data[barcode]["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Update last purchased timestamp
+                item["history"].append(round(item["current_price"], 2))
+                item["meter"] = new_meter
                 item["last_purchased"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             else:
@@ -66,12 +67,11 @@ class ItemProcessor:
         for item in items_data.values():
             item["history"] = []
             item["current_price"] = item.get("base_price", item.get("current_price", 0))
-            item["meter"] = 0
 
         self.item_data_manager.save_items_to_json()
         print("Successfully reset item histories.")
 
-    def decay_prices(self):
+    def decay_prices(self, since_timestamp):
         """ Decays the prices of items that have not been purchased in the last day and updates price history. """
         items_data = self.item_data_manager.items
 
@@ -82,9 +82,10 @@ class ItemProcessor:
                     try:
                         last_purchased = datetime.strptime(details["last_purchased"], "%Y-%m-%d %H:%M:%S")
                         # Check if it's been at least 1 day since last purchase
-                        if (datetime.now() - last_purchased).days >= 1:
+                        if last_purchased.timestamp() < since_timestamp:
                             if "demand_price" in details and "base_price" in details and "current_price" in details:
                                 current_price = float(details["current_price"])
+                                old_price = current_price
                                 demand_price = float(details["demand_price"])
                                 base_price = float(details["base_price"])
 
@@ -107,8 +108,7 @@ class ItemProcessor:
                                 else:
                                     print(f"[ItemProcessor] Price for {barcode} unchanged since last history entry; not appending.")
 
-
-                                print(f"[ItemProcessor] Decayed price for {barcode} from {old_price:.2f} to {details['current_price']:.2f}")
+                                print(f"[ItemProcessor] Decayed price from {old_price:.2f} to {details['current_price']:.2f}")
                     except ValueError:
                         print(f"[ItemProcessor] Warning: Could not parse 'last_purchased' date for barcode {barcode}.")
                 else:

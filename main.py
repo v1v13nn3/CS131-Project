@@ -76,7 +76,7 @@ class DemandSyncApp:
 
         # Simulated intervals (in seconds)
         self.hourly_interval_simulated = 5
-        self.daily_interval_simulated = 12
+        self.daily_interval_simulated = 120
 
         # Start periodic tasks
         self.start_periodic_tasks()
@@ -92,14 +92,12 @@ class DemandSyncApp:
     def check_hourly_tasks(self):
         """ Checks if the simulated hourly interval has passed and runs the task. """
         if time.time() - self.last_hourly_check_time >= self.hourly_interval_simulated:
-            self.last_hourly_check_time = time.time()
             self.run_hourly_tasks()
         self.root.after(1000, self.check_hourly_tasks)
 
     def check_daily_tasks(self):
         """ Checks if the simulated daily interval has passed and runs the task. """
         if time.time() - self.last_daily_check_time >= self.daily_interval_simulated:
-            self.last_daily_check_time = time.time()
             self.run_daily_tasks()
         self.root.after(1000, self.check_daily_tasks)
 
@@ -108,12 +106,14 @@ class DemandSyncApp:
         self.log_message("Simulating hourly process: Sending price updates to other store...")
         # Both client and server roles will send their prices
         self.network_manager.send_prices_to_other_store(self.last_hourly_check_time)
+        self.last_hourly_check_time = time.time()
 
     def run_daily_tasks(self):
         """ Executes tasks that simulate daily processes. """
         self.log_message("Simulating daily process: Decaying prices of unsold items...")
-        self.item_processor.decay_prices()
+        self.item_processor.decay_prices(self.last_daily_check_time)
         self.dashboard.update_dashboard([])
+        self.last_daily_check_time = time.time()
 
     def handle_scan(self):
         """ Handles the 'Scan Barcode' button click event. """

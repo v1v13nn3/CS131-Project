@@ -4,39 +4,77 @@
         "base_price": 1.315,
         "demand_price": 1.315,
         "current_price": 1.315,
-        "last_purchased": "2025-05-20 21:17:12",
-        "last_updated": "2025-05-22 01:11:33",
-        "meter": 0,
-        "series_id": "APU0000711111"
+        "last_purchased": "2025-05-22 14:10:54",
+        "last_updated": "2025-05-22 14:39:35",
+        "meter": 4,
+        "series_id": "APU0000711111",
+        "history": [
+            1.315
+        ]
     },
     "0002": {
         "item_name": "bananas (1 lb.)",
         "base_price": 0.615,
-        "demand_price": 0.615,
-        "current_price": 0.615,
-        "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-22 01:11:33",
-        "meter": 0,
-        "series_id": "APU0000711211"
+        "demand_price": 0.6262557575902704,
+        "current_price": 0.6228790303131893,
+        "last_purchased": "2025-05-22 14:39:13",
+        "last_updated": "2025-05-22 14:39:35",
+        "meter": 2,
+        "series_id": "APU0000711211",
+        "history": [
+            0.615,
+            0.62,
+            0.615,
+            0.62,
+            0.62,
+            0.63,
+            0.64,
+            0.65,
+            0.66,
+            0.615,
+            0.62,
+            0.63,
+            0.64,
+            0.615,
+            0.63,
+            0.64,
+            0.65,
+            0.66,
+            0.67,
+            0.68,
+            0.69,
+            0.7,
+            0.71,
+            0.72,
+            0.73,
+            0.6715878114590992,
+            0.6228790303131893
+        ]
     },
     "0003": {
         "item_name": "eggs (1 dozen)",
         "base_price": 4.146,
         "demand_price": 4.146,
         "current_price": 4.146,
-        "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-22 01:11:33",
+        "last_purchased": "2025-05-22 13:08:54",
+        "last_updated": "2025-05-22 14:39:35",
         "meter": 0,
-        "series_id": "APU0000708111"
+        "series_id": "APU0000708111",
+        "history": [
+            4.146
+        ]
     },
     "0004": {
         "item_name": "milk (1 gallon)",
         "base_price": 4.101,
         "demand_price": 4.101,
         "current_price": 4.101,
-        "last_purchased": "2025-01-01 12:00:00",
-        "last_updated": "2025-05-22 01:11:33",
+        "last_purchased": "2025-05-22 12:45:05",
+        "last_updated": "2025-05-22 14:39:35",
         "meter": 0,
-        "series_id": "APU0000709112"
+        "series_id": "APU0000709112",
+        "history": [
+            4.101
+        ]
     }
 }
