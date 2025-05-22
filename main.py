@@ -39,7 +39,7 @@ class DemandSync:
         self.right_frame = tk.Frame(root)
         self.right_frame.pack(side="right", fill="both", expand=True)
 
-        # --- LEFT: Scanning UI ---
+        # Left Side of UI
         self.video_label = tk.Label(self.left_frame)
         self.video_label.pack()
 
@@ -52,12 +52,12 @@ class DemandSync:
         self.result_text = tk.Text(self.left_frame, height=10, width=50)
         self.result_text.pack()
 
-        # --- RIGHT: Dashboard UI ---
-        self.dashboard = DashboardModule(self.right_frame)
+        # Right Side of UI
+        self.dashboard = DashboardModule(self.right_frame, self.processMod)
         self.dashboard.pack(fill="both", expand=True)
 
         self.transaction = []
-        #self.update_camera()
+        self.update_camera()
 
 
     def handle_scan(self):
@@ -106,6 +106,7 @@ class DemandSync:
         self.result_text.delete('1.0', tk.END)
         self.result_text.insert(tk.END, "Transaction processed.\n")
 
+    #update the image with live feed of the camera
     def update_camera(self):
         ret, frame = self.capMod.camera.read()
         if ret:
@@ -117,6 +118,8 @@ class DemandSync:
 
         # Call this function again after 30ms
         self.root.after(30, self.update_camera)
+
+    
         
 
 

@@ -31,31 +31,28 @@ class ProcessModule:
         Adjusts the price of the items based on the quantity bought.
         """
         for barcode, details in item_count.items():
-            current_meter = self.items[barcode]["meter"]
+            item = self.items[barcode]
+
+            current_meter = item.get("meter", 0)
             new_meter = current_meter + details["quantity"]
-            
-            while (new_meter >= 5):
+
+            if "history" not in item or not item["history"]:
+                base_price = item.get("base_price", item.get("current_price", 0))
+                item["history"] = [round(base_price, 2)]
+
+            while new_meter >= 5:
                 new_meter -= 5
-                # Increase price by 10%
-                self.items[barcode]["current_price"] *= 1.1
+                item["current_price"] *= 1.1
 
-            # 🔽 Add history tracking here
-            if "history" not in self.items[barcode]:
-                self.items[barcode]["history"] = []
+            item["current_price"] = round(item["current_price"], 2)
 
-            # Round to 2 decimals for display purposes
-            current_price_rounded = round(self.items[barcode]["current_price"], 2)
-            self.items[barcode]["history"].append(current_price_rounded)
+            item["history"].append(item["current_price"])
 
-            # Keep history limited to the last 10 values
-            if len(self.items[barcode]["history"]) > 10:
-                self.items[barcode]["history"] = self.items[barcode]["history"][-10:]
-            
-            self.items[barcode]["meter"] = new_meter
+            item["meter"] = new_meter
 
-        try: 
+        try:
             with open(self.filepath, "w") as file:
-                json.dump(self.items, file, indent = 4)
+                json.dump(self.items, file, indent=4)
             print(f"Successfully updated items in {self.filepath}.")
         except IOError:
             print(f"Error writing to file {self.filepath}.")
@@ -66,3 +63,19 @@ class ProcessModule:
         """
         item_count = self.organize(items)
         self.adjust_price(item_count)
+
+    def reset_history(self):
+        """
+        Clears the price history, prices, and meters for all items (locally)
+        """
+        for item in self.items.values():
+            item["history"] = []
+            item["current_price"] = item["base_price"]
+            item["meter"] = 0
+
+        try:
+            with open(self.filepath, "w") as file:
+                json.dump(self.items, file, indent=4)
+            print("Successfully reset item histories.")
+        except IOError:
+            print(f"Error writing to file {self.filepath}.")
