@@ -64,6 +64,8 @@ class DemandSyncApp:
         # Right Side of UI
         self.dashboard = DashboardModule(self.right_frame, self.item_processor)
         self.dashboard.pack(fill="both", expand=True)
+        self.start_dashboard_refresh()
+
 
         self.update_camera()
 
@@ -111,6 +113,7 @@ class DemandSyncApp:
         """ Executes tasks that simulate daily processes. """
         self.log_message("Simulating daily process: Decaying prices of unsold items...")
         self.item_processor.decay_prices()
+        self.dashboard.update_dashboard([])
 
     def handle_scan(self):
         """ Handles the 'Scan Barcode' button click event. """
@@ -185,6 +188,12 @@ class DemandSyncApp:
         self.capture_module.camera.release()
         self.root.destroy()
 
+    def start_dashboard_refresh(self):
+        """ Periodically refresh dashboard to show price changes (e.g. decay). """
+        self.dashboard.update_dashboard([])  # Pass empty list, no new transactions
+        self.root.after(10000, self.start_dashboard_refresh)  # Refresh every 10 seconds
+
+
 # --- Main Application Entry Point ---
 if __name__ == "__main__":
     # Determine if this instance is Store 1 or Store 2.
@@ -195,3 +204,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
     root.mainloop()
+    
