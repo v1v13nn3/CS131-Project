@@ -1,4 +1,12 @@
 # CS131-Project
+Before Runnning... fill in TODO's
+Computer 1: 
+	main.py -> Line 17 -> IP of Computer 2
+ 		-> Line 167 -> True
+Computer 2:
+	main.py -> Line 17 -> IP of Computer 2
+ 		-> Line 167 -> False
+   
 To launch app run `python3 main.py`
 
 Main Timing Pipeline
