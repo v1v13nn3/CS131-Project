@@ -31,16 +31,6 @@ class DemandSyncApp:
         self.root.title(f"DemandSync (Store {'1' if is_this_store_server else '2'}) - My IP: {get_local_ip()}")
         self.root.geometry("1000x600")  # Optional: set a window size
 
-        # --- Module Instances ---
-        self.capture_module = CaptureModule()
-        self.item_data_manager = ItemDataManager(filepath = JSON_FILE)
-        self.item_processor = ItemProcessor(item_data_manager = self.item_data_manager)
-        self.network_manager = NetworkManager(
-            item_data_manager = self.item_data_manager,
-            is_this_store_server = is_this_store_server,
-            other_store_ip = OTHER_STORE_IP
-        )
-
         # Create two main frames for left (scanner) and right (dashboard)
         self.left_frame = tk.Frame(root)
         self.left_frame.pack(side="left", fill="both", expand=True)
@@ -63,15 +53,51 @@ class DemandSyncApp:
         self.finish_button = tk.Button(self.left_frame, text="Finish Transaction", command=self.finish_transaction)
         self.finish_button.pack()
 
-        self.result_text = tk.Text(self.left_frame, height=10, width=50)
-        self.result_text.pack()
+        # self.result_text = tk.Text(self.left_frame, height=10, width=50)
+        # self.result_text.pack()
+
+        self.log_frames = {}
+        self.log_text_widgets = {}
+
+        log_types = {
+            "Scan Data": "scan",
+            "Sent Network Data": "sent", # MODIFIED: Changed "send" to "sent" for consistency
+            "Received Network Data": "received",
+            "Price Adjustments/Decay": "process"
+        }
+
+        for title, log_type in log_types.items(): # ADDED: Loop to create multiple log feeds
+            frame = tk.LabelFrame(self.right_frame, text=title, bd=2, relief="groove") # ADDED: LabelFrame for each feed
+            frame.pack(fill="both", expand=True, padx=5, pady=2) # ADDED: Pack the frame
+            
+            text_widget = tk.Text(frame, height=5, width=60, state='normal', wrap='word', font=('Consolas', 9)) # ADDED: Text widget for log
+            text_widget.pack(side="left", fill="both", expand=True) # ADDED: Pack text widget
+            
+            scrollbar = tk.Scrollbar(frame, command=text_widget.yview) # ADDED: Scrollbar for text widget
+            scrollbar.pack(side="right", fill="y") # ADDED: Pack scrollbar
+            text_widget.config(yscrollcommand=scrollbar.set) # ADDED: Configure scrollbar
+
+            self.log_frames[log_type] = frame # ADDED: Store frame reference
+            self.log_text_widgets[log_type] = text_widget # ADDED: Store text widget reference
+
+        # ADDED: Pass the central logging function to modules
+        self.item_data_manager = ItemDataManager(filepath=JSON_FILE, log_callback=self._log_message) # MODIFIED: Pass log_callback
+        self.item_processor = ItemProcessor(item_data_manager=self.item_data_manager, log_callback=self._log_message) # MODIFIED: Pass log_callback
+        
+        # --- Module Instances ---
+        self.capture_module = CaptureModule()
+        # self.item_data_manager = ItemDataManager(filepath = JSON_FILE)
+        # self.item_processor = ItemProcessor(item_data_manager = self.item_data_manager)
+        self.network_manager = NetworkManager(
+            item_data_manager = self.item_data_manager,
+            is_this_store_server = is_this_store_server,
+            other_store_ip = OTHER_STORE_IP,
+            log_callback=self._log_message
+        )
 
         # Right Side of UI
         self.dashboard = DashboardModule(self.right_frame, self.item_processor)
         self.dashboard.pack(fill="both", expand=True)
-        self.start_dashboard_refresh()
-
-        self.update_camera()
 
         # --- Application State ---
         self.transaction_barcodes = []
@@ -84,6 +110,8 @@ class DemandSyncApp:
 
         # Start periodic tasks
         self.start_periodic_tasks()
+        self.update_camera()
+        self.start_dashboard_refresh()
 
         # Bind window close event to shutdown network manager
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -107,14 +135,14 @@ class DemandSyncApp:
 
     def run_hourly_tasks(self):
         """ Executes tasks that simulate hourly processes. """
-        self.log_message("Simulating hourly process: Sending price updates to other store...")
+        self._log_message("Simulating hourly process: Sending price updates to other store...", "sent")
         # Both client and server roles will send their prices
         self.network_manager.send_prices_to_other_store(self.last_hourly_check_time)
         self.last_hourly_check_time = time.time()
 
     def run_daily_tasks(self):
         """ Executes tasks that simulate daily processes. """
-        self.log_message("Simulating daily process: Decaying prices of unsold items...")
+        self._log_message("Simulating daily process: Decaying prices of unsold items...", "process")
         self.item_processor.decay_prices(self.last_daily_check_time)
         self.dashboard.update_dashboard([])
         self.last_daily_check_time = time.time()
@@ -142,24 +170,27 @@ class DemandSyncApp:
                     else:
                         output_lines.append(f"Item with barcode {barcode_data} not found.")
 
-            self.log_message("\n".join(reversed(output_lines)))
+            self._log_message("\n".join(reversed(output_lines)), "scan")
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred during scan: {e}")
-            self.log_message(f"Error during scan: {e}")
+            self._log_message(f"Error during scan: {e}")
 
     def finish_transaction(self):
         """ Handles the 'Finish Transaction' button click event. """
         if not self.transaction_barcodes:
             messagebox.showinfo("Info", "No items bought in this transaction.")
-            self.log_message("No items in current transaction.")
+            self._log_message("No items in current transaction.")
             return
         
+        self._log_message("Processing transaction...", "scan")
         self.item_processor.process_pipeline(self.transaction_barcodes)
         self.dashboard.update_dashboard(self.transaction_barcodes)
         self.transaction_barcodes.clear()
-        self.result_text.delete('1.0', tk.END)
-        self.result_text.insert(tk.END, "Transaction processed.\n")
+        # self.result_text.delete('1.0', tk.END)
+        self._log_message("Transaction processed. Ready for next transaction.", "scan")
+        # self.result_text.insert(tk.END, "Transaction processed.\n")
+        messagebox.showinfo("Transaction Complete", "Transaction processed successfully!")
 
     #update the image with live feed of the camera
     def update_camera(self):
@@ -198,16 +229,22 @@ class DemandSyncApp:
         self.root.after(30, self.update_camera)
 
 
-    def log_message(self, message):
-        """ Logs a message to the Tkinter text widget and console. """
+    def _log_message(self, message, log_type="scan"): # MODIFIED: Renamed to private, added log_type parameter
+        """ Logs a message to the appropriate Tkinter text widget and console. """
         timestamp = datetime.now().strftime("[%H:%M:%S]")
         full_message = f"{timestamp} {message}\n"
-        self.result_text.insert('1.0', full_message)
-        num_lines = int(self.result_text.index('end-1c').split('.')[0])
-        if num_lines > 100:
-            self.result_text.delete('101.0', 'end')
-        self.result_text.see('1.0')
-        print(full_message.strip())
+
+        target_widget = self.log_text_widgets.get(log_type) # ADDED: Get target widget based on log_type
+        if target_widget: # ADDED: Check if widget exists
+            target_widget.insert('1.0', full_message) # MODIFIED: Insert into specific widget
+            num_lines = int(target_widget.index('end-1c').split('.')[0]) # MODIFIED: Count lines in specific widget
+            if num_lines > 100: # Keep only the last 100 lines
+                target_widget.delete('101.0', 'end') # MODIFIED: Delete from specific widget
+            target_widget.see('1.0') # MODIFIED: Scroll specific widget to top
+        else: # ADDED: Fallback for invalid log_type
+            print(f"[{log_type.upper()} - ERROR] {full_message.strip()}")
+
+        print(full_message.strip()) # Always print to console for debugging
 
     def _on_closing(self):
         """ Handles the window closing event to ensure proper shutdown. """

@@ -8,13 +8,18 @@ BLS_WEIGHT = 0.30
 DEMAND_WEIGHT = 0.70
 
 class ItemDataManager:
-    def __init__(self, filepath="items.json"):
+    def __init__(self, filepath="items.json", log_callback=None):
         self.get_bls_data = get_bls_data
 
         self.filepath = filepath
         self.items = {}
+        self.log_callback = log_callback if log_callback else self._default_log
         self._load_items()
         # self.load_bls_data()
+
+    def _default_log(self, message, log_type="info"):
+        """Default logging if no callback is provided."""
+        print(f"[{log_type.upper()}] {message}")
 
     def _load_items(self):
         """ Loads item data from the JSON file. """
