@@ -14,7 +14,7 @@ from datetime import datetime
 # --- Global Configuration ---
 # Set this IP to the IP address of the OTHER computer on your local network.
 # You need to find this manually (e.g., using `ipconfig` on Windows, `ifconfig` on macOS/Linux).
-OTHER_STORE_IP = "10.13.12.89" # <--- IMPORTANT: REPLACE THIS WITH THE ACTUAL IP OF THE OTHER MACHINE
+OTHER_STORE_IP = "172.20.10.9" # <--- IMPORTANT: REPLACE THIS WITH THE ACTUAL IP OF THE OTHER MACHINE
 
 JSON_FILE = "items.json" # Path to your item data file
 
@@ -74,7 +74,7 @@ class DemandSyncApp:
         self.last_daily_check_time = time.time()
 
         # Simulated intervals (in seconds)
-        self.hourly_interval_simulated = 60
+        self.hourly_interval_simulated = 10
         self.daily_interval_simulated = 120
 
         # Start periodic tasks
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     # Determine if this instance is Store 1 or Store 2.
     # Set IS_THIS_STORE_SERVER = True for one computer (e.g., Store 1).
     # Set IS_THIS_STORE_SERVER = False for the other computer (e.g., Store 2).
-    IS_THIS_STORE_SERVER = "True" # <--- IMPORTANT: SET THIS TO TRUE FOR ONE COMPUTER, FALSE FOR THE OTHER
+    IS_THIS_STORE_SERVER = False # <--- IMPORTANT: SET THIS TO TRUE FOR ONE COMPUTER, FALSE FOR THE OTHER
 
     root = tk.Tk()
     app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
