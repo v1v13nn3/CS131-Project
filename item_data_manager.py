@@ -78,21 +78,21 @@ class ItemDataManager:
         """
 
 ###########################################################from here
-    for index, (item_id, info) in enumerate(self.items.items()):
-        try:
-            response = requests.get("https://aloft.pythonanywhere.com/submit", params={
-                "insertStore": "1",
-                "searchStore": "0",
-                "storename": "STORE1",
-                "storeIP": "1.1.1",
-                "storeCo": "USA",
-                "itemname": f"xyz_{index}",
-                "password": "password"
-            })
-            response.raise_for_status()
-            #print(f"Submitted item")
-        except requests.RequestException as e:
-            print(f"Error submitting item {index} to Flask")
+        for index, (item_id, info) in enumerate(self.items.items()):
+            try:
+                response = requests.get("https://aloft.pythonanywhere.com/submit", params={
+                    "insertStore": "1",
+                    "searchStore": "0",
+                    "storename": "STORE1",
+                    "storeIP": "1.1.1",
+                    "storeCo": "USA",
+                    "itemname": f"xyz_{index}",
+                    "password": "password"
+                })
+                response.raise_for_status()
+                #print(f"Submitted item")
+            except requests.RequestException as e:
+                print(f"Error submitting item {index} to Flask")
 ###############################to here
             
         recently_updated_prices = {}
