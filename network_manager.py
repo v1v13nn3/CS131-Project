@@ -63,6 +63,7 @@ class NetworkManager:
             # Connect to the other store's PULL socket
             self.push_socket.connect(f"tcp://{self.other_store_ip}:{self.other_store_connect_port}")
             self.log_callback(f" PUSH socket connected to tcp://{self.other_store_ip}:{self.other_store_connect_port} (Sending to other store)", "sent")
+            self.push_socket.send_string("Hello this is store 1")
         except zmq.error.ZMQError as e:
             print(f"[NetworkManager] Error connecting PUSH socket: {e}")
             self.push_socket.close()

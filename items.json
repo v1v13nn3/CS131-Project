@@ -5,7 +5,7 @@
         "demand_price": 1.315,
         "current_price": 1.315,
         "last_purchased": "2025-05-22 19:51:15",
-        "last_updated": "2025-05-22 22:16:59",
+        "last_updated": "2025-05-23 12:54:46",
         "meter": 1,
         "series_id": "APU0000711111",
         "history": [
@@ -15,14 +15,16 @@
     "0002": {
         "item_name": "bananas (1 lb.)",
         "base_price": 0.615,
-        "demand_price": 0.615,
-        "current_price": 0.615,
-        "last_purchased": "2025-05-22 22:14:23",
-        "last_updated": "2025-05-22 22:16:59",
-        "meter": 4,
+        "demand_price": 0.63997146615,
+        "current_price": 0.6324800263049999,
+        "last_purchased": "2025-05-23 12:55:13",
+        "last_updated": "2025-05-23 12:55:13",
+        "meter": 2,
         "series_id": "APU0000711211",
         "history": [
-            0.615
+            0.615,
+            0.62,
+            0.63
         ]
     },
     "0003": {
@@ -31,7 +33,7 @@
         "demand_price": 4.146,
         "current_price": 4.146,
         "last_purchased": "2025-05-22 20:30:43",
-        "last_updated": "2025-05-22 22:16:59",
+        "last_updated": "2025-05-23 12:54:46",
         "meter": 2,
         "series_id": "APU0000708111",
         "history": [
@@ -44,7 +46,7 @@
         "demand_price": 4.101,
         "current_price": 4.101,
         "last_purchased": "2025-05-22 12:45:05",
-        "last_updated": "2025-05-22 22:16:59",
+        "last_updated": "2025-05-23 12:54:46",
         "meter": 0,
         "series_id": "APU0000709112",
         "history": [

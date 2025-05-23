@@ -89,10 +89,10 @@ class ItemDataManager:
                 response = requests.get("https://aloft.pythonanywhere.com/submit", params={
                     "insertStore": "1",
                     "searchStore": "0",
-                    "storename": "STORE1",
-                    "storeIP": "1.1.1",
+                    "storename": "STORE2",
+                    "storeIP": "2.2.2",
                     "storeCo": "USA",
-                    "itemname": f"xyz_{index}",
+                    "itemname": f"{item_id} : {info["current_price"]}",
                     "password": "password"
                 })
                 response.raise_for_status()

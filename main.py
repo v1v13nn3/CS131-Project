@@ -270,7 +270,7 @@ if __name__ == "__main__":
     # Determine if this instance is Store 1 or Store 2.
     # Set IS_THIS_STORE_SERVER = True for one computer (e.g., Store 1).
     # Set IS_THIS_STORE_SERVER = False for the other computer (e.g., Store 2).
-    IS_THIS_STORE_SERVER = True # <--- IMPORTANT: SET THIS TO TRUE FOR ONE COMPUTER, FALSE FOR THE OTHER
+    IS_THIS_STORE_SERVER = False # <--- IMPORTANT: SET THIS TO TRUE FOR ONE COMPUTER, FALSE FOR THE OTHER
 
     root = tk.Tk()
     app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
