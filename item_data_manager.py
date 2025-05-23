@@ -14,7 +14,7 @@ class ItemDataManager:
         self.filepath = filepath
         self.items = {}
         self._load_items()
-        self.load_bls_data()
+        # self.load_bls_data()
 
     def _load_items(self):
         """ Loads item data from the JSON file. """
@@ -78,6 +78,7 @@ class ItemDataManager:
         """
 
 ###########################################################from here
+        print(f"[ItemDataManager] Sending items to PythonAnywhere...")
         for index, (item_id, info) in enumerate(self.items.items()):
             try:
                 response = requests.get("https://aloft.pythonanywhere.com/submit", params={
