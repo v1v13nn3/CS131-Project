@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import requests
 
 from api_BLS import get_bls_data
 
@@ -75,6 +76,25 @@ class ItemDataManager:
         formatted for syncing (item_id: {"current_price": price}).
         :param since_timestamp: A float timestamp (e.g., from time.time()) representing the last sync time.
         """
+
+###########################################################from here
+        for index, (item_id, info) in enumerate(self.items.items()):
+            try:
+                response = requests.get("https://aloft.pythonanywhere.com/submit", params={
+                    "insertStore": "1",
+                    "searchStore": "0",
+                    "storename": "STORE1",
+                    "storeIP": "1.1.1",
+                    "storeCo": "USA",
+                    "itemname": f"xyz_{index}",
+                    "password": "password"
+                })
+                response.raise_for_status()
+                #print(f"Submitted item")
+            except requests.RequestException as e:
+                print(f"Error submitting item {index} to Flask")
+###############################to here
+            
         recently_updated_prices = {}
         for item_id, info in self.items.items():
             last_updated_str = info.get("last_updated")

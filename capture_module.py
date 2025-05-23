@@ -2,7 +2,7 @@ import cv2
 from pyzbar.pyzbar import decode
 
 class CaptureModule:
-    def __init__ (self, camera_index = 1):
+    def __init__ (self, camera_index = 0):
         self.camera_index = camera_index
         self.camera = cv2.VideoCapture(camera_index)
         if not self.camera.isOpened():
