@@ -49,8 +49,13 @@ class DemandSyncApp:
         self.right_frame.pack(side="right", fill="both", expand=True)
 
         # Left Side of UI
-        self.video_label = tk.Label(self.left_frame)
+        self.camera_frame = tk.Frame(self.left_frame)
+        self.camera_frame.pack(fill="x")
+
+        self.video_label = tk.Label(self.camera_frame)
         self.video_label.pack()
+
+        self.root.bind("<Configure>", self._on_resize)
 
         self.scan_button = tk.Button(self.left_frame, text="Scan Barcode", command=self.handle_scan)
         self.scan_button.pack()
@@ -160,14 +165,38 @@ class DemandSyncApp:
     def update_camera(self):
         ret, frame = self.capture_module.camera.read()
         if ret:
-            img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_height, frame_width = frame.shape[:2]
+            frame_aspect_ratio = frame_width / frame_height
+
+            # Get the current label dimensions
+            label_width = self.video_label.winfo_width()
+            label_height = self.video_label.winfo_height()
+
+            if label_width == 1 and label_height == 1:
+                # Default when widget hasn't been fully drawn yet
+                label_width = 640
+                label_height = 480
+
+            label_aspect_ratio = label_width / label_height
+
+            # Adjust image size to fit within the label while preserving aspect ratio
+            if label_aspect_ratio > frame_aspect_ratio:
+                new_height = label_height
+                new_width = int(frame_aspect_ratio * new_height)
+            else:
+                new_width = label_width
+                new_height = int(new_width / frame_aspect_ratio)
+
+            resized_frame = cv2.resize(frame, (new_width, new_height))
+            img_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
             img_pil = Image.fromarray(img_rgb)
             img_tk = ImageTk.PhotoImage(img_pil)
+
             self.video_label.imgtk = img_tk
             self.video_label.configure(image=img_tk)
 
-        # Call this function again after 30ms
         self.root.after(30, self.update_camera)
+
 
     def log_message(self, message):
         """ Logs a message to the Tkinter text widget and console. """
@@ -192,6 +221,12 @@ class DemandSyncApp:
         self.dashboard.update_dashboard([])  # Pass empty list, no new transactions
         self.root.after(10000, self.start_dashboard_refresh)  # Refresh every 10 seconds
 
+    def _on_resize(self, event):
+        """Ensure video_label stays within 2/3 of the window height."""
+        max_height = int(self.root.winfo_height() * 2 / 3)
+        self.camera_frame.configure(height=max_height)
+        self.camera_frame.pack_propagate(False)
+
 
 # --- Main Application Entry Point ---
 if __name__ == "__main__":
@@ -204,3 +239,4 @@ if __name__ == "__main__":
     app = DemandSyncApp(root, is_this_store_server = IS_THIS_STORE_SERVER)
     root.mainloop()
     
+
