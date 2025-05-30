@@ -36,6 +36,8 @@ class DashboardModule(tk.Frame):
         tk.Label(header_frame, text="", width=2).pack(side="left")  # icon spacer
         tk.Label(header_frame, text="Name", width=13, anchor="w").pack(side="left")
         tk.Label(header_frame, text="Current Price", width=18, anchor="w").pack(side="left")
+        tk.Label(header_frame, text="Demand Price", width=18, anchor="w").pack(side="left");
+        tk.Label(header_frame, text="Base Price", width=18, anchor="w").pack(side="left");
         tk.Label(header_frame, text="Δ (Change)", width=20, anchor="w").pack(side="left")
 
         self.recent_labels = []
@@ -52,10 +54,16 @@ class DashboardModule(tk.Frame):
             price_label = ttk.Label(frame, width=15, anchor="w")
             price_label.pack(side="left")
 
+            demand_label = ttk.Label(frame, width=15, anchor="w")
+            demand_label.pack(side="left")
+
+            base_label = ttk.Label(frame, width=15, anchor="w")
+            base_label.pack(side="left")
+
             delta_label = ttk.Label(frame, width=10, anchor="w")
             delta_label.pack(side="left")
 
-            self.recent_labels.append((icon_label, name_label, price_label, delta_label))
+            self.recent_labels.append((icon_label, name_label, price_label, demand_label, base_label, delta_label))
 
         self.figure, self.ax = plt.subplots(figsize=(5, 3))
         self.canvas = FigureCanvasTkAgg(self.figure, self.graph_frame)
@@ -106,6 +114,7 @@ class DashboardModule(tk.Frame):
                 barcode, data = recent_items[i]
                 name = data.get("item_name", "Unknown")
                 current = data.get("current_price", 0.0)
+                demand = data.get("demand_price", 0.0)
                 base = data.get("base_price", 0.0)
                 history = data.get("history", [])
                 delta = current - base
@@ -116,11 +125,15 @@ class DashboardModule(tk.Frame):
                 icon_label.image = icon
                 name_label.config(text=name)
                 price_label.config(text=f"${current:.2f}")
+                demand_label.config(text=f"${demand:2f}")
+                base_label.config(text=f"${base:2f}")
                 delta_label.config(text=f"{delta:+.2f}")
             else:
                 icon_label.config(image="")
                 name_label.config(text="Waiting for data...")
                 price_label.config(text="")
+                demand_label.config(text="")
+                base_label.config(text="")
                 delta_label.config(text="")
 
     def get_trend_icon_image(self, current, base):
