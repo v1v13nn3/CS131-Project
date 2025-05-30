@@ -259,9 +259,9 @@ class DemandSyncApp:
         self.root.after(10000, self.start_dashboard_refresh)  # Refresh every 10 seconds
 
     def _on_resize(self, event):
-        """Ensure video_label stays within 2/3 of the window height."""
-        max_height = int(self.root.winfo_height() * 2 / 3)
-        self.camera_frame.configure(height=max_height)
+        """Ensure video_label stays within 1/2 of window width."""
+        max_width = int(self.root.winfo_width() * 1 / 2)
+        self.camera_frame.configure(width=max_width)
         self.camera_frame.pack_propagate(False)
 
 
