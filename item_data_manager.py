@@ -86,13 +86,14 @@ class ItemDataManager:
         print(f"[ItemDataManager] Sending items to PythonAnywhere...")
         for index, (item_id, info) in enumerate(self.items.items()):
             try:
+                current_price = info["current_price"]
                 response = requests.get("https://aloft.pythonanywhere.com/submit", params={
                     "insertStore": "1",
                     "searchStore": "0",
                     "storename": "STORE2",
                     "storeIP": "2.2.2",
                     "storeCo": "USA",
-                    "itemname": f"{item_id} : {info["current_price"]}",
+                    "itemname": f"{item_id} : {current_price}",
                     "password": "password"
                 })
                 response.raise_for_status()
