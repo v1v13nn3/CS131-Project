@@ -5,12 +5,17 @@ BLS_WEIGHT = 0.30
 DEMAND_WEIGHT = 0.70
 
 class ItemProcessor:
-    def __init__(self, item_data_manager):
+    def __init__(self, item_data_manager, log_callback=None):
         """
         Initializes the ItemProcessor.
         :param item_data_manager: An instance of ItemDataManager to manage item data.
         """
         self.item_data_manager = item_data_manager
+        self.log_callback = log_callback if log_callback else self._default_log
+
+    def _default_log(self, message, log_type="info"): # ADDED: Default logging method
+        """Default logging if no callback is provided."""
+        print(f"[{log_type.upper()}] {message}")
 
     def organize(self, items_list):
         """ Organizes a list of scanned barcodes into a dictionary with their respective quantities. """
@@ -29,7 +34,7 @@ class ItemProcessor:
         for barcode, details in item_count.items():
             if barcode in items_data:
                 item = items_data[barcode]
-
+                original_price = items_data[barcode]["current_price"]
                 current_meter = item.get("meter", 0)
                 new_meter = current_meter + details["quantity"]
 
@@ -47,6 +52,7 @@ class ItemProcessor:
                 item["history"].append(round(item["current_price"], 2))
                 item["meter"] = new_meter
                 item["last_purchased"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.log_callback(f"Adjusted price for {barcode}. Old price: {original_price:.2f}, New price: {item['current_price']:.2f}", "process")
 
             else:
                 print(f"[ItemProcessor] Warning: Barcode '{barcode}' not found in item data for price adjustment.")
@@ -85,7 +91,7 @@ class ItemProcessor:
                         if last_purchased.timestamp() < since_timestamp:
                             if "demand_price" in details and "base_price" in details and "current_price" in details:
                                 current_price = float(details["current_price"])
-                                old_price = current_price
+                                original_price = current_price
                                 demand_price = float(details["demand_price"])
                                 base_price = float(details["base_price"])
 
@@ -98,6 +104,7 @@ class ItemProcessor:
                                 details["demand_price"] = demand_price
                                 details["current_price"] = current_price
                                 details["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                self.log_callback(f"Decayed price for {barcode}. Old price: {original_price:.2f}, Decayed price: {current_price:.2f}", "process")
 
                                 # Append the new decayed price to history only if it changed
                                 if "history" not in details or not isinstance(details["history"], list):
@@ -107,15 +114,13 @@ class ItemProcessor:
                                     details["history"].append(details["current_price"])
                                 else:
                                     print(f"[ItemProcessor] Price for {barcode} unchanged since last history entry; not appending.")
-
-                                print(f"[ItemProcessor] Decayed price from {old_price:.2f} to {details['current_price']:.2f}")
                     except ValueError:
                         print(f"[ItemProcessor] Warning: Could not parse 'last_purchased' date for barcode {barcode}.")
                 else:
                     print(f"[ItemProcessor] Warning: 'last_purchased' not found or empty for barcode {barcode}. Skipping decay.")
 
             self.item_data_manager.save_items_to_json()
-            print("[ItemProcessor] Price decay process completed.")
+            self.log_callback("Price decay process completed.", "process")
 
         except Exception as e:
             print(f"[ItemProcessor] An error occurred during price decay: {e}")

@@ -9,7 +9,7 @@ STORE_1_LISTEN_PORT = "5556" # Port for Store 1 to listen on (PULL socket binds 
 STORE_2_LISTEN_PORT = "5557" # Port for Store 2 to listen on (PULL socket binds here)
 
 class NetworkManager:
-    def __init__(self, item_data_manager, is_this_store_server = False, other_store_ip = None):
+    def __init__(self, item_data_manager, is_this_store_server = False, other_store_ip = None, log_callback = None):
         """
         Initializes the NetworkManager for bidirectional PUSH/PULL communication.
         :param item_data_manager: An instance of ItemDataManager to get/set item data.
@@ -23,11 +23,16 @@ class NetworkManager:
         self.running = True
         self.receiver_thread = None
         self.other_store_ip = other_store_ip
+        self.log_callback = log_callback if log_callback else self._defailt_log
 
         if not self.other_store_ip:
             raise ValueError("other_store_ip must be provided for network communication.")
 
         self.setup_sockets()
+
+    def _default_log(self, message, log_type="info"): # ADDED: Default logging method
+        """Default logging if no callback is provided."""
+        print(f"[{log_type.upper()}] {message}")
 
     def setup_sockets(self):
         """ Sets up the PUSH and PULL sockets based on the store's role. """
@@ -42,7 +47,7 @@ class NetworkManager:
         self.pull_socket = self.context.socket(zmq.PULL)
         try:
             self.pull_socket.bind(f"tcp://*:{self.my_listen_port}")
-            print(f"[NetworkManager] PULL socket bound to tcp://*:{self.my_listen_port} (Receiving from other store)")
+            self.log_callback(f"PULL socket bound to tcp://*:{self.my_listen_port} (Receiving from other store)", "received")
             self.receiver_thread = threading.Thread(target = self.receive_loop, daemon = True)
             self.receiver_thread.start()
         except zmq.error.ZMQError as e:
@@ -57,7 +62,8 @@ class NetworkManager:
         try:
             # Connect to the other store's PULL socket
             self.push_socket.connect(f"tcp://{self.other_store_ip}:{self.other_store_connect_port}")
-            print(f"[NetworkManager] PUSH socket connected to tcp://{self.other_store_ip}:{self.other_store_connect_port} (Sending to other store)")
+            self.log_callback(f" PUSH socket connected to tcp://{self.other_store_ip}:{self.other_store_connect_port} (Sending to other store)", "sent")
+            self.push_socket.send_string("Hello this is store 1")
         except zmq.error.ZMQError as e:
             print(f"[NetworkManager] Error connecting PUSH socket: {e}")
             self.push_socket.close()
@@ -73,9 +79,9 @@ class NetworkManager:
         while self.running:
             try:
                 message = self.pull_socket.recv_string()
-                print(f"[NetworkManager] Received price update -> {message}")
+                self.log_callback(f"Received price update -> {message}", "received")
                 received_prices = json.loads(message)
-                print("[NetworkManager] Processing received prices...")
+                self.log_callback("[NetworkManager] Processing received prices...", "received")
 
                 self.item_data_manager.update_prices_from_sync(received_prices)
 
@@ -108,9 +114,9 @@ class NetworkManager:
             if prices:
                 msg = json.dumps(prices)
                 self.push_socket.send_string(msg)
-                print(f"[NetworkManager] Sent price update for {len(prices)} items -> {msg}")
+                self.log_callback(f"Sent price update for {len(prices)} items -> {msg}", "sent")
             else:
-                print("[NetworkManager] No recent item updates to send.")
+                self.log_callback("No recent item updates to send.", "sent")
         except zmq.error.ZMQError as e:
             print(f"[NetworkManager] Error sending prices: {e}")
         except Exception as e:
