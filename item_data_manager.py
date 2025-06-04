@@ -15,7 +15,7 @@ class ItemDataManager:
         self.items = {}
         self.log_callback = log_callback if log_callback else self._default_log
         self._load_items()
-        # self.load_bls_data()
+        self.load_bls_data()
 
     def _default_log(self, message, log_type="info"):
         """Default logging if no callback is provided."""
@@ -36,7 +36,6 @@ class ItemDataManager:
 
     def load_bls_data(self):
         """ Loads the average pricing data from the Beureau of Labor Statistics (BLS) API. """
-        # Gather sersies IDs from the items
         print(f"[ItemDataManager] Loading BLS data...")
         series_ids = []
         for barcode in self.items:
@@ -81,8 +80,6 @@ class ItemDataManager:
         formatted for syncing (item_id: {"current_price": price}).
         :param since_timestamp: A float timestamp (e.g., from time.time()) representing the last sync time.
         """
-
-###########################################################from here
         print(f"[ItemDataManager] Sending items to PythonAnywhere...")
         for index, (item_id, info) in enumerate(self.items.items()):
             try:
@@ -97,19 +94,15 @@ class ItemDataManager:
                     "password": "password"
                 })
                 response.raise_for_status()
-                #print(f"Submitted item")
             except requests.RequestException as e:
                 print(f"Error submitting item {index} to Flask")
-###############################to here
             
         recently_updated_prices = {}
         for item_id, info in self.items.items():
             last_updated_str = info.get("last_updated")
             if last_updated_str:
                 try:
-                    # Convert string timestamp to datetime object
                     last_updated_dt = datetime.strptime(last_updated_str, "%Y-%m-%d %H:%M:%S")
-                    # Convert datetime object to Unix timestamp for comparison
                     last_updated_unix = last_updated_dt.timestamp()
 
                     if last_updated_unix >= since_timestamp:

@@ -17,10 +17,10 @@ Main Timing Pipeline
 ```
 while True:
 	# run main function -> main()
-	# simulate 1 hour by checking if 15 seconds have passed
+	# simulate 1 hour by checking if 30 seconds have passed
 		# if yes then collect most recently updated items
 		# sync with other store
-	# simulate 1 day passing by checking id 360 seconds have passed
+	# simulate 1 day passing by checking id 60 seconds have passed
 		# if yes then decay the prices of items that have not been purchased in the last day by 10%
 		# make sure to not decrease bellow the base price
 ```
@@ -39,13 +39,17 @@ def main():
 
 Items.json Structure
 ```
-{
-	"0000": {
-		"item_name": "apple",
-		"base_price": "0.30",
-		"current_price": "0.50",
-		"last_purchased": "00:00:00",
-		"last_updated": "00:00:00",
-        	"meter": "0"
-}
+"0001": {
+	"item_name": "apple (1 lb.)",
+	"base_price": 1.315,
+	"demand_price": 1.315,
+	"current_price": 1.315,
+	"last_purchased": "2025-05-22 19:51:15",
+	"last_updated": "2025-05-23 12:54:46",
+	"meter": 1,
+	"series_id": "APU0000711111",
+	"history": [
+		1.315
+	]
+},
 ```

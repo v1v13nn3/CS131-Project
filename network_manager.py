@@ -30,7 +30,7 @@ class NetworkManager:
 
         self.setup_sockets()
 
-    def _default_log(self, message, log_type="info"): # ADDED: Default logging method
+    def _default_log(self, message, log_type="info"):
         """Default logging if no callback is provided."""
         print(f"[{log_type.upper()}] {message}")
 
@@ -74,7 +74,6 @@ class NetworkManager:
 
     def receive_loop(self):
         """ Loop to receive messages on the PULL socket. """
-        # Set a small timeout to allow the thread to gracefully shut down
         self.pull_socket.RCVTIMEO = 100 # milliseconds
         while self.running:
             try:
@@ -86,7 +85,6 @@ class NetworkManager:
                 self.item_data_manager.update_prices_from_sync(received_prices)
 
             except zmq.error.Again:
-                # No message received within timeout, continue loop
                 pass
             except zmq.error.ZMQError as e:
                 if self.running:
@@ -96,9 +94,9 @@ class NetworkManager:
                 print(f"[NetworkManager] JSON Decode Error in received message: {e}")
             except Exception as e:
                 print(f"[NetworkManager] Unexpected error in receive loop: {e}")
-            time.sleep(0.01) # Small sleep to prevent busy-waiting
+            time.sleep(0.01)
 
-    def send_prices_to_other_store(self, last_sync_time): # Added last_sync_time parameter
+    def send_prices_to_other_store(self, last_sync_time):
         """
         Sends the current prices to the other store using the PUSH socket.
         Only sends items updated since last_sync_time.
@@ -109,7 +107,6 @@ class NetworkManager:
             return
 
         try:
-            # Get only recently updated items from ItemDataManager
             prices = self.item_data_manager.get_recently_updated_items_for_sync(last_sync_time)
             if prices:
                 msg = json.dumps(prices)
@@ -141,11 +138,11 @@ def get_local_ip():
     """Attempts to get the local IP address of the current machine."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80)) # Connect to a public server (doesn't send data)
+        s.connect(("8.8.8.8", 80))
         ip_address = s.getsockname()[0]
         s.close()
         return ip_address
     except socket.gaierror:
-        return "127.0.0.1" # Fallback to localhost
+        return "127.0.0.1"
     except Exception:
-        return "127.0.0.1" # Fallback for other network issues
+        return "127.0.0.1"
